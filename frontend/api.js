@@ -31,10 +31,29 @@ async function request(path, options = {}) {
 }
 
 const api = {
-  getMenu({ veg = 'all', q = '' } = {}) {
+  getMenu({
+    veg = 'all',
+    q = '',
+    category = '',
+    sort = '',
+    servedOnly = '',
+    maxPrice = '',
+    page = 1,
+    limit = 5,
+  } = {}) {
     const params = new URLSearchParams();
-    if (veg !== 'all') params.set('veg', veg);
+
+    if (veg && veg !== 'all') params.set('veg', veg);
     if (q) params.set('q', q);
+    if (category) params.set('category', category);
+    if (sort) params.set('sort', sort);
+    if (servedOnly) params.set('servedOnly', servedOnly);
+    if (maxPrice !== '' && maxPrice != null) params.set('maxPrice', maxPrice);
+
+    // CRITICAL: You must pass these so the server slices the records
+    params.set('page', page);
+    params.set('limit', limit);
+
     const query = params.toString();
     return request('/menu' + (query ? `?${query}` : ''));
   },

@@ -108,11 +108,19 @@ function detailQtyControl(dish) {
     return html`<button class="primary-btn" disabled>${dish.blockedReason || 'Not available'}</button>`;
   }
 
-  if (qty > 0) {
+  if (dish.stock>qty ) {
     return html`<div class="qty-row big">
       <button class="qty-btn" data-detail="dec" aria-label="One less">&minus;</button>
       <span class="qty-value">${qty}</span>
       <button class="qty-btn" data-detail="inc" aria-label="One more">+</button>
+      <button class="ghost-btn" data-detail="view">View cart</button>
+    </div>`;
+  }
+  else{
+        return html`<div class="qty-row big">
+      <button class="qty-btn" data-detail="dec" aria-label="One less">&minus;</button>
+      <span class="qty-value">${qty}</span>
+      <button class="qty-btn" data-detail="inc" aria-label="One more" disabled>+</button>
       <button class="ghost-btn" data-detail="view">View cart</button>
     </div>`;
   }

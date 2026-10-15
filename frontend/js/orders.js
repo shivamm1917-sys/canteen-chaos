@@ -124,12 +124,12 @@ $('#rateOrderBtn').addEventListener('click', (e) => openRating(e.currentTarget.d
 /* ---------------------------------------------------- My Orders */
 
 async function loadMyOrders() {
-  hideStatus(ordersStatus);
+  hideStatus();
   render(ordersList, skeletonRows(3));
 
   let orders = [];
   try {
-    const data = await api.listOrders({ memberId: deviceId(), limit: 25 });
+    const data = await api.listOrders({ memberId: deviceId(),tokens: state.tokens, limit: 25 });
     orders = data.orders;
   } catch (err) {
     ordersList.innerHTML = '';

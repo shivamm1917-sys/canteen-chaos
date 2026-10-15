@@ -21,6 +21,7 @@ async function loadMenu({ append = false } = {}) {
   const myRequest = ++menuRequestId;
 
   if (append) {
+    state.page += 1
     loadMoreBtn.textContent = 'Loading...';
     loadMoreBtn.disabled = true;
   } else {
@@ -38,7 +39,7 @@ async function loadMenu({ append = false } = {}) {
       servedOnly: state.filters.servedOnly ? 'true' : '',
       maxPrice: state.filters.maxPrice,
       page: state.page,
-      limit: 5,
+      limit: 40,
     });
 
     if (myRequest !== menuRequestId) return; // a newer search already won
@@ -62,9 +63,12 @@ async function loadMenu({ append = false } = {}) {
     if (retry) retry.addEventListener('click', () => loadMenu());
   } finally {
     if (myRequest === menuRequestId) {
-      loadMoreBtn.textContent = 'Load more';
-      loadMoreBtn.disabled = false;
-    }
+      loadMoreBtn.textContent = state.hasMore ? 'Load more' : 'No more dishes';
+      loadMoreBtn.disabled = !state.hasMore;    }
+    if (!state.hasMore) {
+        loadMoreBtn.style.display = 'none';
+        if (sentinel) sentinel.style.display = 'none';
+      }
   }
 }
 
@@ -147,11 +151,18 @@ function badgeFor(dish) {
 function qtyControl(dish) {
   const qty = cartQty(dish.id);
 
-  if (qty > 0) {
+  if (qty > 0 && dish.stock>qty) {
     return html`<div class="qty-row">
       <button class="qty-btn" data-action="dec" aria-label="One less ${dish.name}">&minus;</button>
       <span class="qty-value" data-qty="${dish.id}">${qty}</span>
       <button class="qty-btn" data-action="inc" aria-label="One more ${dish.name}">+</button>
+    </div>`;
+  }
+  else if (qty > 0 ){
+        return html`<div class="qty-row">
+      <button class="qty-btn" data-action="dec" aria-label="One less ${dish.name}">&minus;</button>
+      <span class="qty-value" data-qty="${dish.id}">${qty}</span>
+      <button class="qty-btn" data-action="inc" aria-label="One more ${dish.name}" disabled>+</button>
     </div>`;
   }
 
@@ -161,7 +172,7 @@ function qtyControl(dish) {
 
 function dishCard(dish) {
   const fav = isFavourite(dish.id);
-
+  
   return html`<article class="dish-card ${dish.orderable ? '' : 'blocked'}" data-id="${dish.id}">
     <div class="img-wrap">
       <img src="${dish.image}" alt="${dish.name}" loading="lazy" data-action="open" />
@@ -361,6 +372,7 @@ $('#priceRange').addEventListener('input', (e) => {
 const runPriceFilter = debounce(() => loadMenu(), 350);
 
 loadMoreBtn.addEventListener('click', () => {
+  if (!state.hasMore || loadMoreBtn.disabled) return;
   state.page += 1;
   loadMenu({ append: true });
 });
@@ -373,8 +385,11 @@ if ('IntersectionObserver' in window && sentinel) {
     (entries) => {
       const visible = entries.some((entry) => entry.isIntersecting);
       if (!visible) return;
+      if (!state.hasMore) {
+        observer.unobserve(sentinel);
+        return;
+      }
       if (state.route !== 'menu' || !state.hasMore || loadMoreBtn.disabled) return;
-
       state.page += 1;
       loadMenu({ append: true });
     },

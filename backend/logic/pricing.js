@@ -90,6 +90,9 @@ function applyCoupon(code, lines, coupons, { slot = null, now = new Date() } = {
   if (coupon.usesLeft <= 0) {
     return { valid: false, discount: 0, reason: 'This coupon is fully used' };
   }
+  if (new Date(coupon.expiresAt).getTime() <= Date.now()) {
+  return { valid: false, discount: 0, reason: 'This coupon has expired' };
+}
 
   const subtotal = sumLines(lines);
   if (subtotal < coupon.minOrder) {
@@ -99,6 +102,7 @@ function applyCoupon(code, lines, coupons, { slot = null, now = new Date() } = {
       reason: `Add Rs. ${round2(coupon.minOrder - subtotal)} more to use ${coupon.code}`,
     };
   }
+  
   if (coupon.vegOnly && lines.some((l) => l.veg === false)) {
     return { valid: false, discount: 0, reason: `${coupon.code} works on veg-only orders` };
   }
